@@ -1,6 +1,6 @@
 import openai
 import time
-from openai.error import OpenAIError
+from openai import OpenAIError
 
 DEFAULT_RETRIES = 3
 RETRY_DELAY = 2  # seconds

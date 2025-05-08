@@ -1,6 +1,6 @@
 import openai
 import time
-from openai_wrapper import call_openai_method
+from .openai_wrapper import call_openai_method
 
 def use_chat_api(prompt, model, stream):
     if stream:
