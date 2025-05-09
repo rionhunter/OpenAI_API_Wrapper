@@ -4,7 +4,6 @@ import openai
 
 CONFIG_FILE = 'model_config.json'
 
-
 def get_available_models():
     """Returns model list from local config if exists. If file doesn't exist or is incomplete, updates from OpenAI."""
     if os.path.exists(CONFIG_FILE):
@@ -18,19 +17,18 @@ def get_available_models():
 
     return update_model_config()
 
-
-def update_model_config():
+def update_model_config(api_key=None):
     """Fetches models from OpenAI and updates the local config."""
     try:
-        response = openai.Model.list()
-        models = sorted(m['id'] for m in response['data'])
+        client = openai.OpenAI(api_key=api_key) if api_key else openai
+        response = client.models.list()
+        models = sorted(m.id for m in response.data)
         with open(CONFIG_FILE, 'w') as f:
             json.dump({"models": models}, f, indent=2)
         return models
     except Exception as e:
         print(f"Error updating models from OpenAI: {e}")
         return []
-
 
 def confirm_model(model_name):
     """Confirms if a model is in the current config; updates config if not found."""

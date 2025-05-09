@@ -2,6 +2,7 @@ import argparse
 import openai
 import os
 import json
+import time
 from datetime import datetime
 from model_manager import confirm_model
 from openai_wrapper import call_openai_method
@@ -17,8 +18,7 @@ parser.add_argument('--output_file', type=str, help='File to save the result')
 parser.add_argument('--api_key', type=str, help='OpenAI API key')
 args = parser.parse_args()
 
-# --- API Key ---
-openai.api_key = args.api_key if args.api_key else os.getenv("OPENAI_API_KEY")
+api_key = args.api_key if args.api_key else os.getenv("OPENAI_API_KEY")
 
 # --- Model Check ---
 if not confirm_model(args.model):
@@ -29,13 +29,15 @@ if not confirm_model(args.model):
 operation = "translate" if args.translate else "transcribe"
 method = getattr(openai.Audio, operation)
 
+start = time.time()
 with open(args.file, 'rb') as audio_file:
     transcript = call_openai_method(
         method,
         model=args.model,
         file=audio_file,
         language=args.language,
-        response_format=args.format
+        response_format=args.format,
+        api_key=api_key
     )
 
 # --- Output ---
@@ -43,6 +45,8 @@ if isinstance(transcript, dict):
     output = json.dumps(transcript, indent=2)
 else:
     output = transcript
+
+print(f"Duration: {time.time() - start:.2f}s")
 
 if args.output_file:
     with open(args.output_file, 'w', encoding='utf-8') as f:

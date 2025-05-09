@@ -1,28 +1,30 @@
 import openai
 import time
 from openai import OpenAIError
+import os
 
 DEFAULT_RETRIES = 3
 RETRY_DELAY = 2  # seconds
 
 
-def call_openai_method(method, *args, retries=DEFAULT_RETRIES, **kwargs):
+def call_openai_method(method_path, *args, retries=DEFAULT_RETRIES, **kwargs):
     """
-    Wraps any OpenAI API method with basic retry logic.
-    
-    Parameters:
-        method: callable OpenAI method (e.g., openai.ChatCompletion.create)
-        *args, **kwargs: passed to the OpenAI method
-        retries: number of retry attempts on error
-    Returns:
-        Result of OpenAI method call
-    Raises:
-        Last OpenAIError if all retries fail
+    Call an OpenAI method via string path, like 'chat.completions.create'.
+    Example: call_openai_method("chat.completions.create", model="gpt-4", ...)
     """
+    api_key = kwargs.pop('api_key', os.getenv("OPENAI_API_KEY"))
+    client = openai.OpenAI(api_key=api_key)
+
+    # Resolve the method dynamically from string
+    parts = method_path.split(".")
+    method_func = client
+    for part in parts:
+        method_func = getattr(method_func, part)
+
     attempt = 0
     while attempt <= retries:
         try:
-            return method(*args, **kwargs)
+            return method_func(*args, **kwargs)
         except OpenAIError as e:
             if attempt == retries:
                 raise
