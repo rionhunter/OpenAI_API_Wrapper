@@ -1,6 +1,6 @@
 import openai
 import time
-from openai_wrapper import call_openai_method
+from .openai_wrapper import call_openai_method
 import datetime
 
 def use_chat_api(prompt, model, stream, api_key=None):
@@ -25,14 +25,14 @@ def use_chat_api(prompt, model, stream, api_key=None):
         return full_response
     else:
         response = call_openai_method(
-            openai.ChatCompletion.create,
+            "chat.completions.create",
             model=model,
             messages=[{"role": "user", "content": prompt}],
             api_key=api_key
         )
         usage = getattr(response, 'usage', {})
         print(f"Duration: {time.time() - start:.2f}s | Tokens: {usage}")
-        return response.choices[0].message['content']
+        return response.choices[0].message.content
 
 def use_assistant_api(prompt, assistant_id, api_key=None):
     start = time.time()

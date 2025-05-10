@@ -1,11 +1,21 @@
+if __name__ == '__main__' and __package__ is None:
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    __package__ = 'OpenAI_API_Wrapper'
+
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import threading
 import traceback
-import json
-from model_manager import get_available_models
-from openai_wrapper import call_openai_method
+from .model_manager import get_available_models, update_model_config
+from .openai_wrapper import call_openai_method
 import openai
+
+import os
+import json
+
+CONFIG_CACHE = "gui_test_config.json"
 
 class OpenAITestGUI:
     def __init__(self, root):
@@ -18,8 +28,10 @@ class OpenAITestGUI:
         self.output_path = tk.StringVar()
 
         self.models = []
+        self._load_config()
 
         self._build_ui()
+        self._setup_autosave()
 
     def _build_ui(self):
         ttk.Label(self.root, text="API Key:").grid(row=0, column=0, sticky='w')
@@ -38,7 +50,9 @@ class OpenAITestGUI:
         ttk.Entry(self.root, textvariable=self.output_path, width=40).grid(row=3, column=1, sticky='ew')
         ttk.Button(self.root, text="Browse", command=self._browse_file).grid(row=3, column=2)
 
-        ttk.Button(self.root, text="Run Test", command=self._run_test).grid(row=4, column=0, columnspan=3, pady=5)
+        ttk.Button(self.root, text="Run Test", command=self._run_test).grid(row=4, column=0, pady=5)
+        ttk.Button(self.root, text="Clear All", command=self._clear_all).grid(row=4, column=1, pady=5)
+        ttk.Label(self.root, text="").grid(row=4, column=2)
 
         self.log_box = tk.Text(self.root, height=15, width=100)
         self.log_box.grid(row=5, column=0, columnspan=3, sticky='nsew')
@@ -53,13 +67,38 @@ class OpenAITestGUI:
 
     def _load_models(self):
         try:
-            from model_manager import update_model_config
             key = self.api_key.get().strip()
-            self.models = update_model_config(api_key=key)
+            self.models = get_available_models() if not key else update_model_config(api_key=key)
             self.model_combo['values'] = self.models
             self._log(f"Loaded {len(self.models)} models from config.")
         except Exception as e:
             self._log("\n=== ERROR LOADING MODELS ===\n" + traceback.format_exc())
+
+    def _save_config(self):
+        data = {
+            "prompt": self.prompt_entry.get("1.0", tk.END).strip(),
+            "model": self.model.get(),
+            "output_path": self.output_path.get()
+        }
+        with open(CONFIG_CACHE, 'w', encoding='utf-8') as f:
+            json.dump(data, f)
+
+    def _load_config(self):
+        if os.path.exists(CONFIG_CACHE):
+            try:
+                with open(CONFIG_CACHE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                self.prompt_entry.insert("1.0", data.get("prompt", ""))
+                self.model.set(data.get("model", ""))
+                self.output_path.set(data.get("output_path", ""))
+            except Exception:
+                pass
+
+    def _clear_all(self):
+        self.prompt_entry.delete("1.0", tk.END)
+        self.model.set("")
+        self.output_path.set("")
+        self._save_config()
 
     def _run_test(self):
         threading.Thread(target=self._execute_test, daemon=True).start()
@@ -76,6 +115,7 @@ class OpenAITestGUI:
             return
 
         try:
+            self._save_config()
             response = call_openai_method(
                 "chat.completions.create",
                 model=model,
@@ -93,6 +133,11 @@ class OpenAITestGUI:
         except Exception as e:
             err_trace = traceback.format_exc()
             self._log("\n=== ERROR ===\n" + err_trace)
+
+    def _setup_autosave(self):
+        self.prompt_entry.bind("<KeyRelease>", lambda e: self._save_config())
+        self.model.trace_add("write", lambda *args: self._save_config())
+        self.output_path.trace_add("write", lambda *args: self._save_config())
 
     def _log(self, message):
         self.log_box.insert(tk.END, message + "\n")
