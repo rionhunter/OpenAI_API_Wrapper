@@ -1,3 +1,7 @@
+from .openai_wrapper import generate_content
+from .model_manager import get_available_models
+
+
 # Unified OpenAI API CLI Toolkit
 
 __version__ = "1.0.0"

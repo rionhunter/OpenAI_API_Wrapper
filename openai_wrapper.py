@@ -15,7 +15,6 @@ def call_openai_method(method_path, *args, retries=DEFAULT_RETRIES, **kwargs):
     api_key = kwargs.pop('api_key', os.getenv("OPENAI_API_KEY"))
     client = openai.OpenAI(api_key=api_key)
 
-    # Resolve the method dynamically from string
     parts = method_path.split(".")
     method_func = client
     for part in parts:
@@ -31,3 +30,17 @@ def call_openai_method(method_path, *args, retries=DEFAULT_RETRIES, **kwargs):
             time.sleep(RETRY_DELAY)
             attempt += 1
             print(f"Retrying OpenAI call due to error: {e} (attempt {attempt}/{retries})")
+
+
+def generate_content(prompt: str, api_key: str, model: str = "gpt-4") -> str:
+    """
+    Send a prompt to the OpenAI chat completion API and return the content.
+    """
+    response = call_openai_method(
+        "chat.completions.create",
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+        api_key=api_key
+    )
+    return response.choices[0].message.content.strip()
