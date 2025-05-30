@@ -5500,3 +5500,10 @@
 .venv/Lib/site-packages/openai/types/beta/realtime/__pycache__/conversation_item_input_audio_transcription_delta_event.cpython-312.pyc
 .venv/Lib/site-packages/openai/types/beta/realtime/__pycache__/conversation_item_input_audio_transcription_failed_event.cpython-312.pyc
 .venv/Lib/site-packages/openai/types/beta/realtime/__pycache__/conversation_item_input_audio_transcription_completed_event.cpython-312.pyc
+__pycache__/Whisper_Api_Module.cpython-312.pyc
+__pycache__/openai_wrapper.cpython-312.pyc
+__pycache__/testing_gui.cpython-312.pyc
+__pycache__/Gpt_Api_Module.cpython-312.pyc
+__pycache__/entrypoint.cpython-312.pyc
+__pycache__/Dalle_Api_Module.cpython-312.pyc
+__pycache__/__main__.cpython-312.pyc
