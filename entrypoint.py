@@ -8,11 +8,12 @@ from .Dalle_Api_Module import generate_dalle_image
 from .Whisper_Api_Module import transcribe_audio
 
 import sys
+import json
 
-def main(argv=None):
+def main(argv=None, testing=True):
     is_direct = __name__ == "__main__" and (argv is None or argv == sys.argv)
 
-    if is_direct and len(sys.argv) == 1:
+    if is_direct and len(sys.argv) == 1 and not testing:
         try:
             from testing_gui import OpenAITestGUI
             import tkinter as tk
@@ -51,6 +52,9 @@ def main(argv=None):
         parser.add_argument('--output_dir', type=str, default='images', help='Output directory (DALL·E)')
         parser.add_argument('--json_output', action='store_true', help='Format GPT result as JSON')
         parser.add_argument('--api_key', type=str, help='OpenAI API key')
+        parser.add_argument('--input_type', type=str, default='text', choices=['text', 'json'], help='Type of input data')
+        parser.add_argument('--task_id', type=str, help='Task ID for logging purposes')
+        parser.add_argument('--verbose', action='store_true', help='Enable verbose output')
 
         args = parser.parse_args(argv)
 
@@ -65,12 +69,19 @@ def main(argv=None):
                 args.prompt = f.read()
 
         if args.mode == 'gpt':
+            prompt = args.prompt
+            if args.input_type == 'json':
+                try:
+                    prompt = json.dumps(json.loads(args.prompt))
+                except json.JSONDecodeError as e:
+                    print(f"Error decoding JSON prompt: {e}")
+                    return None
+
             if args.assistant_id:
-                result = use_assistant_api(args.prompt, args.assistant_id, args.api_key)
+                result = use_assistant_api(prompt, args.assistant_id, args.api_key)
             else:
-                result = use_chat_api(args.prompt, args.model, args.stream, args.api_key)
+                result = use_chat_api(prompt, args.model, args.stream, args.api_key)
             if args.json_output:
-                import json
                 from datetime import datetime
                 result = json.dumps({
                     "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -96,6 +107,35 @@ def main(argv=None):
             print("\n=== ERROR ===")
             print(traceback.format_exc())
         raise
+
+def interpret_json(json_str):
+    """
+    Safely interprets a JSON string, returning None if parsing fails.
+    """
+    try:
+        import json
+        return json.loads(json_str)
+    except json.JSONDecodeError:
+        return None
+
+def generate_content(prompt, api_key, model, task_id, input_type='text'):
+    """
+    Generates content using OpenAI's API, accepting both text and JSON prompts.
+    """
+    if isinstance(prompt, dict):
+        prompt = json.dumps(prompt)
+
+    return main([
+        'gpt',
+        '--model', model,
+        '--prompt', prompt,
+        '--api_key', api_key,
+        '--json_output',
+        '--task_id', task_id,
+        '--stream', 'false',
+        '--input_type', input_type
+    ])
+
 
 if __name__ == "__main__":
     main()

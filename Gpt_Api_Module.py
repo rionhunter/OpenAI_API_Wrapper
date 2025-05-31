@@ -3,7 +3,7 @@ import time
 from .openai_wrapper import call_openai_method
 import datetime
 
-def use_chat_api(prompt, model, stream, api_key=None):
+def use_chat_api(prompt, model, stream, task_id=None, api_key=None):
     start = time.time()
     if stream:
         response = call_openai_method(
@@ -21,7 +21,8 @@ def use_chat_api(prompt, model, stream, api_key=None):
                 print(delta, end='', flush=True)
                 full_response += delta
         print()
-        print(f"Duration: {time.time() - start:.2f}s")
+        duration = time.time() - start
+        print(f"Task ID: {task_id} | Duration: {duration:.2f}s")
         return full_response
     else:
         response = call_openai_method(
@@ -31,10 +32,11 @@ def use_chat_api(prompt, model, stream, api_key=None):
             api_key=api_key
         )
         usage = getattr(response, 'usage', {})
-        print(f"Duration: {time.time() - start:.2f}s | Tokens: {usage}")
+        duration = time.time() - start
+        print(f"Task ID: {task_id} | Duration: {duration:.2f}s | Tokens: {usage}")
         return response.choices[0].message.content
 
-def use_assistant_api(prompt, assistant_id, api_key=None):
+def use_assistant_api(prompt, assistant_id, task_id=None, api_key=None):
     start = time.time()
     thread = call_openai_method("beta.threads.create", api_key=api_key)
     call_openai_method(
@@ -67,5 +69,6 @@ def use_assistant_api(prompt, assistant_id, api_key=None):
         thread_id=thread.id,
         api_key=api_key
     )
-    print(f"Duration: {time.time() - start:.2f}s")
+    duration = time.time() - start
+    print(f"Task ID: {task_id} | Duration: {duration:.2f}s")
     return messages.data[0]['content'][0]['text']['value']
