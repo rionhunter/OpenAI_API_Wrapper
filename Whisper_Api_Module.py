@@ -3,21 +3,25 @@ import openai
 import os
 import json
 import time
+import logging
 from datetime import datetime
 from .model_manager import confirm_model
 from .openai_wrapper import call_openai_method
+
+logger = logging.getLogger(__name__)
 
 def transcribe_audio(args):
     api_key = args.api_key if args.api_key else os.getenv("OPENAI_API_KEY")
 
     if not confirm_model(args.model):
-        print(f"Error: Model '{args.model}' is not recognized by OpenAI.")
+        logger.error("Model '%s' is not recognized by OpenAI.", args.model)
         exit(1)
 
     operation = "translate" if args.translate else "transcribe"
     method = f"audio.{operation}s.create"
 
     start = time.time()
+    logger.info("Starting %s with model %s", operation, args.model)
     with open(args.file, 'rb') as audio_file:
         transcript = call_openai_method(
             method,
@@ -33,12 +37,12 @@ def transcribe_audio(args):
     else:
         output = transcript
 
-    print(f"Duration: {time.time() - start:.2f}s")
+    logger.info("Duration: %.2fs", time.time() - start)
 
     if args.output_file:
         with open(args.output_file, 'w', encoding='utf-8') as f:
             f.write(output)
-        print(f"Transcription saved to {args.output_file}")
+        logger.info("Transcription saved to %s", args.output_file)
     else:
         print("\nTranscription Output:\n")
         print(output)
