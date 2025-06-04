@@ -1,10 +1,14 @@
 import openai
 import time
+import logging
 from .openai_wrapper import call_openai_method
 import datetime
 
+logger = logging.getLogger(__name__)
+
 def use_chat_api(prompt, model, stream, api_key=None):
     start = time.time()
+    logger.info("Calling chat API with model %s", model)
     if stream:
         response = call_openai_method(
             "chat.completions.create",
@@ -21,7 +25,7 @@ def use_chat_api(prompt, model, stream, api_key=None):
                 print(delta, end='', flush=True)
                 full_response += delta
         print()
-        print(f"Duration: {time.time() - start:.2f}s")
+        logger.info("Duration: %.2fs", time.time() - start)
         return full_response
     else:
         response = call_openai_method(
@@ -31,7 +35,7 @@ def use_chat_api(prompt, model, stream, api_key=None):
             api_key=api_key
         )
         usage = getattr(response, 'usage', {})
-        print(f"Duration: {time.time() - start:.2f}s | Tokens: {usage}")
+        logger.info("Duration: %.2fs | Tokens: %s", time.time() - start, usage)
         return response.choices[0].message.content
 
 def use_assistant_api(prompt, assistant_id, api_key=None):
@@ -67,5 +71,5 @@ def use_assistant_api(prompt, assistant_id, api_key=None):
         thread_id=thread.id,
         api_key=api_key
     )
-    print(f"Duration: {time.time() - start:.2f}s")
+    logger.info("Duration: %.2fs", time.time() - start)
     return messages.data[0]['content'][0]['text']['value']

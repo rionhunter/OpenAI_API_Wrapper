@@ -107,6 +107,15 @@ python entrypoint.py
 
 Launching with no args opens a live test GUI for GPT interaction.
 
+## Automated Tests
+
+Run the simple launcher to execute all test scripts in the `tests/` folder. Pass
+an API key if you wish to run live API tests:
+
+```bash
+python test_launcher.py --api_key YOUR_KEY
+```
+
 ## Features
 
 * Modern OpenAI client integration

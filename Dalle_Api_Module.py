@@ -3,15 +3,18 @@ import openai
 import os
 import json
 import time
+import logging
 from datetime import datetime
 from .model_manager import confirm_model
 from .openai_wrapper import call_openai_method
+
+logger = logging.getLogger(__name__)
 
 def generate_dalle_image(args):
     api_key = args.api_key if args.api_key else os.getenv("OPENAI_API_KEY")
 
     if not confirm_model(args.model):
-        print(f"Error: Model '{args.model}' is not recognized by OpenAI.")
+        logger.error("Model '%s' is not recognized by OpenAI.", args.model)
         exit(1)
 
     request_payload = {
@@ -30,7 +33,7 @@ def generate_dalle_image(args):
 
     start = time.time()
     response = call_openai_method("images.generate", **request_payload)
-    print(f"Duration: {time.time() - start:.2f}s")
+    logger.info("Duration: %.2fs", time.time() - start)
 
     os.makedirs(args.output_dir, exist_ok=True)
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
@@ -40,7 +43,7 @@ def generate_dalle_image(args):
         filename = f"{args.output_dir}/dalle_{timestamp}_{i+1}.json"
         with open(filename, 'w') as f:
             json.dump({"url": image_url, "prompt": args.prompt}, f, indent=2)
-        print(f"Saved URL to {filename}: {image_url}")
+        logger.info("Saved URL to %s: %s", filename, image_url)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='OpenAI DALL·E Image Generator')
