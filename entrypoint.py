@@ -6,6 +6,7 @@ from .model_manager import confirm_model
 from .Gpt_Api_Module import use_chat_api, use_assistant_api
 from .Dalle_Api_Module import generate_dalle_image
 from .Whisper_Api_Module import transcribe_audio
+from .agent_sdk_pipeline import run_agent_sdk_pipeline
 
 import sys
 
@@ -33,12 +34,14 @@ def main(argv=None):
 
     try:
         parser = argparse.ArgumentParser(description='Unified OpenAI CLI')
-        parser.add_argument('mode', choices=['gpt', 'dalle', 'whisper'], help='Operation mode')
+        parser.add_argument('mode', choices=['gpt', 'dalle', 'whisper', 'agent'], help='Operation mode')
         parser.add_argument('--model', type=str, required=True, help='Model to use')
         parser.add_argument('--prompt', type=str, help='Text prompt')
         parser.add_argument('--prompt_file', type=str, help='Path to prompt text file')
         parser.add_argument('--stream', action='store_true', help='Stream GPT response')
         parser.add_argument('--assistant_id', type=str, help='Assistant ID for GPT assistant mode')
+        parser.add_argument('--agent_instructions', type=str, help='Optional Agent SDK system instructions')
+        parser.add_argument('--task_state_file', type=str, help='Path to persisted ongoing task state JSON')
         parser.add_argument('--file', type=str, help='Path to audio file for Whisper')
         parser.add_argument('--translate', action='store_true', help='Translate to English (Whisper)')
         parser.add_argument('--language', type=str, help='Language hint (Whisper)')
@@ -90,6 +93,21 @@ def main(argv=None):
 
         elif args.mode == 'whisper':
             return transcribe_audio(args)
+
+        elif args.mode == 'agent':
+            result = run_agent_sdk_pipeline(
+                prompt=args.prompt,
+                model=args.model,
+                api_key=args.api_key,
+                instructions=args.agent_instructions,
+                task_state_file=args.task_state_file,
+            )
+            if not argv:
+                print(result)
+            if args.output_file:
+                with open(args.output_file, 'w') as f:
+                    f.write(result)
+            return result
 
     except Exception:
         if not argv:

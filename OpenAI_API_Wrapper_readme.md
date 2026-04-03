@@ -1,6 +1,6 @@
 # OpenAI CLI Toolkit
 
-This toolkit provides a unified command-line interface for interacting with OpenAI’s GPT, DALL·E, and Whisper APIs, along with automatic model validation, retry logic, and GUI diagnostics.
+This toolkit provides a unified command-line interface for interacting with OpenAI’s GPT, DALL·E, Whisper, and Agent SDK pipelines, along with automatic model validation, retry logic, and GUI diagnostics.
 
 ## Setup
 
@@ -18,10 +18,11 @@ This toolkit provides a unified command-line interface for interacting with Open
 
 3. **Directory Overview**:
 
-   * `entrypoint.py`: Unified entry point (gpt | dalle | whisper) for both CLI and import.
+   * `entrypoint.py`: Unified entry point (gpt | dalle | whisper | agent) for both CLI and import.
    * `Gpt_Api_Module.py`: GPT chat and assistant functions.
    * `Dalle_Api_Module.py`: DALL·E image generation.
    * `Whisper_Api_Module.py`: Audio transcription/translation.
+   * `agent_sdk_pipeline.py`: Alternative Agent SDK pipeline with function tools and ongoing tasks.
    * `model_manager.py`: Maintains and updates model list.
    * `openai_wrapper.py`: Unified retry-safe OpenAI client wrapper.
    * `testing_gui.py`: GUI interface for API testing and debugging.
@@ -69,6 +70,22 @@ python entrypoint.py whisper \
   --translate \
   --language en
 ```
+
+### Agent SDK Example
+
+```bash
+python entrypoint.py agent \
+  --model gpt-4.1-mini \
+  --prompt "Create a task to draft release notes and then list open tasks" \
+  --task_state_file ./agent_tasks.json \
+  --agent_instructions "Use tools to manage tasks before answering."
+```
+
+> Agent mode requires the OpenAI Agent SDK:
+>
+> ```bash
+> pip install openai-agents
+> ```
 
 ## Traceback & Error Handling
 
