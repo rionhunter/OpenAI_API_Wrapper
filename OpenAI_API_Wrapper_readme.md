@@ -1,6 +1,6 @@
 # OpenAI CLI Toolkit
 
-This toolkit provides a unified command-line interface for interacting with OpenAI’s GPT, DALL·E, and Whisper APIs, along with automatic model validation, retry logic, and GUI diagnostics.
+This toolkit provides a unified command-line interface for interacting with OpenAI’s GPT, DALL·E, Whisper, and Agents SDK workflows, along with automatic model validation, retry logic, and GUI diagnostics.
 
 ## Setup
 
@@ -8,6 +8,12 @@ This toolkit provides a unified command-line interface for interacting with Open
 
    ```bash
    pip install openai
+   ```
+
+   To use the optional Agents SDK wrapper, also install:
+
+   ```bash
+   pip install openai-agents pydantic
    ```
 
 2. **Set your OpenAI API Key** (or provide via `--api_key` flag):
@@ -24,6 +30,7 @@ This toolkit provides a unified command-line interface for interacting with Open
    * `Whisper_Api_Module.py`: Audio transcription/translation.
    * `model_manager.py`: Maintains and updates model list.
    * `openai_wrapper.py`: Unified retry-safe OpenAI client wrapper.
+   * `Agents_SDK_Module.py`: Optional helper wrapper for OpenAI Agents SDK setups.
    * `testing_gui.py`: GUI interface for API testing and debugging.
    * `demo_runner.py`: Cycles through all APIs for demonstration.
    * `utils.py`: Miscellaneous utilities.
